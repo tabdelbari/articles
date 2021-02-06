@@ -83,7 +83,6 @@ class IeeeSpider(scrapy.Spider):
     def parse(self, response):
         result = response.meta['data']
         # search for country using xpath
-        # result.country = ?????
         yield result
 
         pass

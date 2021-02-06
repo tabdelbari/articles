@@ -73,7 +73,7 @@ class IeeeSpider(scrapy.Spider):
             }
 
             # search for country
-            details_url = "https://ieeexplore.ieee.org/document/" + record['articleNumber'] + "/authors#authors"
+            details_url = "https://ieeexplore.ieee.org/document/" + 4722257 + "/authors#authors"
             yield SplashRequest(details_url, self.parse, endpoint='execute',
                             magic_response=True, meta={'handle_httpstatus_all': True, 'data': result},
                             args={'lua_source': self.lua_script, 'http_method': 'GET', 'body': None, 'headers': self.headers})
@@ -82,8 +82,6 @@ class IeeeSpider(scrapy.Spider):
     
     def parse(self, response):
         result = response.meta['data']
-        # search for country using xpath
-        # result.country = ?????
+        # search for country
         yield result
-
-        pass
+        

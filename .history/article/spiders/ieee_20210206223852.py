@@ -22,6 +22,19 @@ class IeeeSpider(scrapy.Spider):
     end
     """
 
+    lua_script = """
+    function main(splash, args)
+      assert(splash:go{
+        splash.args.url,
+        headers=splash.args.headers,
+        http_method=splash.args.http_method,
+        body=splash.args.body,
+      })
+      assert(splash:wait(10))
+      return splash:html()
+    end
+    """
+
     def __init__(self, topic='', keywords='', **kwargs):
         super().__init__(**kwargs)
         # self.start_urls = ['https://ieeexplore.ieee.org/search/searchresult.jsp?newsearch=true&queryText=%s' %keywords]
@@ -73,17 +86,30 @@ class IeeeSpider(scrapy.Spider):
             }
 
             # search for country
-            details_url = "https://ieeexplore.ieee.org/document/" + record['articleNumber'] + "/authors#authors"
+            details_url = "https://ieeexplore.ieee.org/document/" + 4722257 + "/authors#authors"
             yield SplashRequest(details_url, self.parse, endpoint='execute',
                             magic_response=True, meta={'handle_httpstatus_all': True, 'data': result},
-                            args={'lua_source': self.lua_script, 'http_method': 'GET', 'body': None, 'headers': self.headers})
+                            args={'lua_source': self.lua_script2, 'http_method': 'GET', 'body': None, 'headers': self.headers})
             # find abstract for this article and pass as meta the half of object: record['articleNumber']
         pass
     
     def parse(self, response):
-        result = response.meta['data']
-        # search for country using xpath
-        # result.country = ?????
-        yield result
+        jr = json.loads(response.xpath('//*/pre/text()').get(default=''))
 
+        for record in jr['records']:
+            result = {
+                'title': record['articleTitle'],
+                'authors': '|'.join(list(map(lambda author: author['preferredName'], record['authors']))),
+                'country': '',
+                'abstract': record['abstract'],
+                'date_pub': record['publicationDate'],
+                'journal': record['publicationTitle'],
+                'topic': self.topic,
+                'latitude': '',
+                'longitude': ''
+            }
+
+            # search for country
+            yield request
+            # find abstract for this article and pass as meta the half of object: record['articleNumber']
         pass

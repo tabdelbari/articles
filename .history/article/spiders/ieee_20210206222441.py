@@ -1,7 +1,7 @@
 import scrapy
 import logging
 import re
-from scrapy_splash import SplashRequest, request
+from scrapy_splash import SplashRequest
 from article.items import ArticleItem
 import json
 
@@ -52,12 +52,12 @@ class IeeeSpider(scrapy.Spider):
         for i in range(1, (self.totalPages+1)):
             post_data = '{"queryText": "' + self.topic + \
                 '", "highlight": true, "returnType": "SEARCH", "matchPubs": true, "rowsPerPage": 100, "returnFacets": ["ALL"], "pageNumber": '+str(i)+'}'
-            yield SplashRequest(self.post_url, self.parse_1, endpoint='execute',
+            yield SplashRequest(self.post_url, self.parse, endpoint='execute',
                                 magic_response=True, meta={'handle_httpstatus_all': True, 'data': i},
                                 args={'lua_source': self.lua_script, 'http_method': 'POST', 'body': post_data, 'headers': self.headers})
         pass
 
-    def parse_1(self, response):
+    def parse(self, response):
         logging.info('##################################Processing:' + str(response.meta['data']))
         jr = json.loads(response.xpath('//*/pre/text()').get(default=''))
 
@@ -69,21 +69,28 @@ class IeeeSpider(scrapy.Spider):
                 'abstract': record['abstract'],
                 'date_pub': record['publicationDate'],
                 'journal': record['publicationTitle'],
-                'topic': self.topic
+                'topic': self.topic,
+                'latitude': '',
+                'longitude': ''
             }
 
-            # search for country
-            details_url = "https://ieeexplore.ieee.org/document/" + record['articleNumber'] + "/authors#authors"
-            yield SplashRequest(details_url, self.parse, endpoint='execute',
-                            magic_response=True, meta={'handle_httpstatus_all': True, 'data': result},
-                            args={'lua_source': self.lua_script, 'http_method': 'GET', 'body': None, 'headers': self.headers})
+            # sear
+            yield result
             # find abstract for this article and pass as meta the half of object: record['articleNumber']
         pass
-    
-    def parse(self, response):
-        result = response.meta['data']
-        # search for country using xpath
-        # result.country = ?????
-        yield result
 
-        pass
+    def parse_todo(self, response):
+        article = ArticleItem()
+        logging.info('Processing --> ' + response.url)
+
+        article.title = ''
+        article.authors = ''
+        article.country = ''
+        article.abstract = ''
+        article.date_pub = ''
+        article.journal = ''
+        article.topic = self.topic
+        article.latitude = ''
+        article.longitude = ''
+
+        yield article

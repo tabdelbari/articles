@@ -52,7 +52,7 @@ class IeeeSpider(scrapy.Spider):
         for i in range(1, (self.totalPages+1)):
             post_data = '{"queryText": "' + self.topic + \
                 '", "highlight": true, "returnType": "SEARCH", "matchPubs": true, "rowsPerPage": 100, "returnFacets": ["ALL"], "pageNumber": '+str(i)+'}'
-            yield SplashRequest(self.post_url, self.parse_1, endpoint='execute',
+            yield SplashRequest(self.post_url, self.parse, endpoint='execute',
                                 magic_response=True, meta={'handle_httpstatus_all': True, 'data': i},
                                 args={'lua_source': self.lua_script, 'http_method': 'POST', 'body': post_data, 'headers': self.headers})
         pass
@@ -69,21 +69,13 @@ class IeeeSpider(scrapy.Spider):
                 'abstract': record['abstract'],
                 'date_pub': record['publicationDate'],
                 'journal': record['publicationTitle'],
-                'topic': self.topic
+                'topic': self.topic,
+                'latitude': '',
+                'longitude': ''
             }
 
             # search for country
-            details_url = "https://ieeexplore.ieee.org/document/" + record['articleNumber'] + "/authors#authors"
-            yield SplashRequest(details_url, self.parse, endpoint='execute',
-                            magic_response=True, meta={'handle_httpstatus_all': True, 'data': result},
-                            args={'lua_source': self.lua_script, 'http_method': 'GET', 'body': None, 'headers': self.headers})
+            yield request
             # find abstract for this article and pass as meta the half of object: record['articleNumber']
         pass
-    
-    def parse(self, response):
-        result = response.meta['data']
-        # search for country using xpath
-        # result.country = ?????
-        yield result
 
-        pass
