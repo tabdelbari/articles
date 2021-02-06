@@ -86,4 +86,5 @@ class IeeeSpider(scrapy.Spider):
         response.xpath('//*/div[_ngcontent-nae-c54]/text()').get(default=''),
         # result.country = ?????
         yield result
+
         pass

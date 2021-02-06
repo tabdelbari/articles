@@ -83,7 +83,8 @@ class IeeeSpider(scrapy.Spider):
     def parse(self, response):
         result = response.meta['data']
         # search for country using xpath
-        response.xpath('//*/div[_ngcontent-nae-c54]/text()').get(default=''),
+        response.xpath('//*/di[@class="epub-section__date"]/text()').get(default=''),
         # result.country = ?????
         yield result
+
         pass
